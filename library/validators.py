@@ -13,6 +13,15 @@ def validate_username(username):
         return False
     return bool(re.match(c['pattern'], username))
 
+def universal_validator(n1,n2):
+    if not n1 or not isinstance(n1, str):
+        return False
+    n1 = n1.strip()
+    c = CONSTRAINTS[n2]
+    if len(n1) < c['min_length'] or len(n1) > c['max_length']:
+        print('ovdee')
+        return False
+    return bool(re.match(c['pattern'], n1))
 
 def validate_ip(ip):
     if not ip or not isinstance(ip, str):

@@ -2,7 +2,6 @@
 
 import pygame
 
-
 class TextInput:
     def __init__(self, rect, default_text="", max_length=32, placeholder=""):
         self.rect = pygame.Rect(rect)

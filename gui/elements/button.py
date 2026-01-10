@@ -4,17 +4,18 @@ import pygame
 
 
 class Button:
-    def __init__(self, text, rect, action=None, font_size=24):
+    def __init__(self, text, rect, action=None, font_size=24, enabled = True):
         self.text = text
         self.rect = pygame.Rect(rect)
         self.action = action
         self.font = pygame.font.SysFont(None, font_size)
         self.hover = False
-        self.enabled = True
+        self.enabled = enabled
+        # self.enabled = False
     
     def draw(self, surface, theme):
         if not self.enabled:
-            color = (100, 100, 100)
+            color = theme.get('button_disabled', (100, 100, 100))
         elif self.hover:
             color = theme.get('button_hover', (0, 200, 255))
         else:

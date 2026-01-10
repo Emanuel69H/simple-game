@@ -4,7 +4,7 @@ import yaml
 import uuid
 from pathlib import Path
 from config.defaults import DEFAULT_CONFIG, CONSTRAINTS
-from library.validators import validate_username, validate_ip, validate_port
+from library.validators import validate_username, validate_ip, validate_port, universal_validator
 
 
 class ConfigManager:
@@ -88,7 +88,7 @@ class ConfigManager:
     
     @server_ip.setter
     def server_ip(self, v):
-        if validate_ip(v):
+        if universal_validator(v,'ip'):
             self.set('server.ip', v)
         else:
             raise ValueError("Invalid IP")
@@ -123,6 +123,14 @@ class ConfigManager:
     @property
     def button_hover(self):
         return tuple(self.get('theme.button_hover'))
+    
+    @property
+    def button_disabled(self):
+        return tuple(self.get('theme.button_disabled'))
+    
+    @property
+    def label_color(self):
+        return tuple(self.get('theme.label_color'))
     
     @property
     def text_color(self):

@@ -7,16 +7,16 @@ from gui.elements.text_input import TextInput
 
 
 class SettingsMenu(BaseScreen):
-    def __init__(self, screen, config, back_cb):
+    def __init__(self, screen, config, callbacks):
         super().__init__(screen, config)
-        self.back_cb = back_cb
+        self.callback = callbacks.get('main_menu')
         self.scroll_y = 0
         self.input_map = {}
         self._build_ui()
     
     def _build_ui(self):
         w, h = self.config.resolution
-        self.add_button(Button("Cancel", pygame.Rect(20, 20, 100, 35), self.back_cb, 24))
+        self.add_button(Button("Cancel", pygame.Rect(20, 20, 100, 35), self.callback, 24))
         self.add_button(Button("Save", pygame.Rect(w - 120, 20, 100, 35), self._save, 24))
         
         sections = [
@@ -59,10 +59,11 @@ class SettingsMenu(BaseScreen):
             self.config.max_players = self.input_map['max_players'].get_text()
             self.config.save()
             print("Settings saved!")
+            if self.callback:
+                self.callback()
         except ValueError as e:
             print(f"Error: {e}")
-        if self.back_cb:
-            self.back_cb()
+        
     
     def handle_event(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN:
@@ -76,6 +77,7 @@ class SettingsMenu(BaseScreen):
         super().handle_event(event)
     
     def draw(self):
+        super().draw()
         self.screen.fill(self.config.bg_color)
         theme = {'button_color': self.config.button_color, 'button_hover': self.config.button_hover,
                  'text_color': self.config.text_color, 'input_border': self.config.input_border,
@@ -100,4 +102,7 @@ class SettingsMenu(BaseScreen):
         
         for b in self.buttons:
             b.draw(self.screen, theme)
+        vfont = pygame.font.SysFont(None, 20)
+        ver = vfont.render(f"v{self.config.get('game.version')}", True, (150, 150, 150))
+        self.screen.blit(ver, ver.get_rect(bottomright=(self.config.resolution[0] - 10, self.config.resolution[1] - 10)))
         pygame.display.flip()

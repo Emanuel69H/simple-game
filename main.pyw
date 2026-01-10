@@ -1,10 +1,18 @@
 """Dash Dash - Main Entry Point"""
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning, message=".*pkg_resources.*")
+import os
+os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
+
 
 import pygame
 import sys
 from library.config_manager import ConfigManager
 from gui.screens.main_menu import MainMenu
 from gui.screens.settings_menu import SettingsMenu
+from gui.screens.multiplayer_menu import MultiplayerMenu
+
+
 
 
 class Game:
@@ -24,14 +32,17 @@ class Game:
     
     def _init_screens(self):
         main_callbacks = {
+            'main_menu' : lambda: self._change_screen('main_menu'),
             'singleplayer': self._start_singleplayer,
-            'multiplayer': self._show_multiplayer,
+            'multiplayer': lambda: self._change_screen('multiplayer'),
             'settings': lambda: self._change_screen('settings'),
             'quit': self._quit_game
         }
         
         self.screens['main_menu'] = MainMenu(self.screen, self.config, main_callbacks)
-        self.screens['settings'] = SettingsMenu(self.screen, self.config, lambda: self._change_screen('main_menu'))
+        self.screens['settings'] = SettingsMenu(self.screen, self.config, main_callbacks)
+        # self.screens['multiplayer'] = MultiplayerMenu(self.screen, self.config, lambda: self._change_screen('main_menu'))
+        self.screens['multiplayer'] = MultiplayerMenu(self.screen, self.config, main_callbacks)
     
     def _change_screen(self, screen_name):
         if screen_name not in self.screens:
