@@ -10,4 +10,3 @@ from .multiplayer_menu import MultiplayerMenu
 from .game_screen import GameScreen
 
 __all__ = ['BaseScreen', 'MainMenu', 'SettingsMenu', 'MultiplayerMenu', 'GameScreen']
-

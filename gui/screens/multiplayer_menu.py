@@ -103,11 +103,12 @@ class MultiplayerMenu(BaseScreen):
         host = self.config.server_ip
         port = self.config.server_port
         username = self.config.username
+        client_id = self.config.client_id
         
-        print(f"Connecting to {host}:{port} as {username}")
+        print(f"Connecting to {host}:{port} as {username} (ID: {client_id})")
         
         # Try to connect
-        success, error = self.client.connect(host, port, username)
+        success, error = self.client.connect(host, port, username, client_id)
         
         if success:
             # Connection successful
@@ -122,12 +123,13 @@ class MultiplayerMenu(BaseScreen):
             print("Connected successfully!")
         else:
             # Connection failed
-            self.status_label.text = "Connection Failed"
+            if "already connected" in error.lower():
+                self.status_label.text = "Already Connected"
+            else:
+                self.status_label.text = "Connection Failed"
             self.connect_btn.enabled = True
             
             print(f"Connection failed: {error}")
-        # self._update_status_label()
-
     
     def _disconnect_from_server(self):
         """Disconnect from server."""
@@ -199,7 +201,7 @@ class MultiplayerMenu(BaseScreen):
                 error = self.client.get_error()
                 if error:
                     print(f"Connection error: {error}")
-        
+    
     def draw(self):
         """Draw the multiplayer menu."""
         super().draw()

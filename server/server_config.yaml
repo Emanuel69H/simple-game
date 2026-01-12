@@ -1,0 +1,6 @@
+host: 0.0.0.0
+max_players: 8
+player_speed: 5
+port: 50000
+spawn_x: 400
+spawn_y: 300

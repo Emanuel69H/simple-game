@@ -5,7 +5,7 @@ Handles connection to game server and data synchronization.
 
 import socket
 import threading
-import pickle
+import json
 import time
 
 
@@ -18,11 +18,12 @@ class NetworkClient:
         self.running = False
         self.players = {}
         self.player_name = "Player"
+        self.client_id = None  # Store client ID
         self.lock = threading.Lock()
         self.receive_thread = None
         self.connection_error = None
     
-    def connect(self, host, port, username):
+    def connect(self, host, port, username, client_id):
         """
         Connect to game server.
         
@@ -30,6 +31,7 @@ class NetworkClient:
             host: Server IP address
             port: Server port
             username: Player name
+            client_id: Unique client identifier
             
         Returns:
             tuple: (success: bool, error_message: str or None)
@@ -51,7 +53,33 @@ class NetworkClient:
             self.connected = True
             self.running = True
             self.player_name = username
+            self.client_id = client_id
             self.connection_error = None
+            
+            # Send initial handshake with client_id
+            initial_state = {
+                "movement": 0,
+                "name": username,
+                "client_id": client_id
+            }
+            self.socket.sendall(json.dumps(initial_state).encode())
+            
+            # Wait for response
+            data = self.socket.recv(4096)
+            if data:
+                response = json.loads(data.decode())
+                # Check for error (duplicate client_id)
+                if isinstance(response, dict) and "error" in response:
+                    if response["error"] == "CLIENT_ALREADY_CONNECTED":
+                        self.socket.close()
+                        self.connected = False
+                        error_msg = "This client is already connected to the server"
+                        print(f"Connection failed: {error_msg}")
+                        return (False, error_msg)
+                
+                # Success - store initial player data
+                with self.lock:
+                    self.players = response
             
             # Start receive thread
             self.receive_thread = threading.Thread(target=self._receive_data, daemon=True)
@@ -113,7 +141,7 @@ class NetworkClient:
                 
                 # Deserialize player data
                 with self.lock:
-                    self.players = pickle.loads(data)
+                    self.players = json.loads(data.decode())
                     
             except ConnectionResetError:
                 print("Connection reset by server")
@@ -130,12 +158,21 @@ class NetworkClient:
         
         print("Receive thread stopped")
     
-    def send_input(self, input_state):
+    def send_input(self, movement_direction):
         """
         Send player input to server.
         
         Args:
-            input_state: dict with keys like {"w": bool, "a": bool, "s": bool, "d": bool, "name": str}
+            movement_direction: int (bitwise flags) representing movement direction
+                0 = no movement
+                1 = up
+                2 = down
+                4 = left
+                8 = right
+                5 = up-left (1 | 4)
+                9 = up-right (1 | 8)
+                6 = down-left (2 | 4)
+                10 = down-right (2 | 8)
             
         Returns:
             bool: True if sent successfully
@@ -144,11 +181,16 @@ class NetworkClient:
             return False
         
         try:
-            # Add player name to input
-            input_state["name"] = self.player_name
+            # Create input state with movement, name, and client_id
+            input_state = {
+                "movement": movement_direction,
+                "name": self.player_name,
+                "client_id": self.client_id
+            }
             
             # Serialize and send
-            data = pickle.dumps(input_state)
+
+            data = json.dumps(input_state).encode()
             self.socket.sendall(data)
             return True
             
