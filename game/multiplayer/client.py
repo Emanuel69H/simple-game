@@ -142,6 +142,7 @@ class NetworkClient:
                 # Deserialize player data
                 with self.lock:
                     self.players = json.loads(data.decode())
+                    print(f"Received player data: {self.players}")
                     
             except ConnectionResetError:
                 print("Connection reset by server")
