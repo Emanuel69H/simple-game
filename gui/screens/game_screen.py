@@ -73,9 +73,9 @@ class GameScreen(BaseScreen):
             movement |= MOVE_LEFT
         if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
             movement |= MOVE_RIGHT
-            
-        # Send movement to server
-        self.client.send_input(movement)
+
+        if movement != MOVE_NONE:
+            self.client.send_input(movement)
     
     def draw(self):
         """Draw the game."""
